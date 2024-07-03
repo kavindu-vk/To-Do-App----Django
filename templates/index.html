@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <title>TO-DO LIST</title>
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
+        .todo-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+        .todo-description {
+            color: #6c757d;
+        }
+        .completed .todo-title {
+            text-decoration: line-through;
+            color: #28a745;
+        }
+        .list-group-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .actions {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+                <h1 class="mt-5 text-center">To-Do List</h1>
+                <div class="text-center mb-3">
+                    <a href="{% url 'add-todo' %}" class="btn btn-primary">Add New To-Do</a>
+                </div>
+                <ul class="list-group">
+                    {% for t in todo %}
+                        <li class="list-group-item {% if t.completed %}completed{% endif %}">
+                            <div>
+                                <span class="todo-title">{{ t.title }}</span> 
+                                <span class="todo-description">- {{ t.description }}</span>
+                            </div>
+                            <div class="actions">
+                                <a href="{% url 'edit-todo' t.pk %}" class="btn btn-warning btn-sm">Edit</a>
+                                <a href="{% url 'delete-todo' t.pk %}" class="btn btn-danger btn-sm">Delete</a>
+                                <span class="task-status">
+                                    {% if t.completed %}
+                                        <span class="badge badge-success">Completed</span>
+                                    {% else %}
+                                        <span class="badge badge-secondary">Pending</span>
+                                    {% endif %}
+                                </span>
+                            </div>
+                        </li>
+                    {% endfor %}
+                </ul>
+            </div>
+        </div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.5.4/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('.completed-checkbox').change(function() {
+                var todoId = $(this).data('id');
+                
+                $.ajax({
+                    type: 'POST',
+                    url: '/complete-todo/' + todoId + '/',
+                    data: {
+                        'completed': completed,
+                        'csrfmiddlewaretoken': '{{ csrf_token }}'
+                    },
+                    success: function(response) {
+                        // Update the task status visually
+                        var taskStatus = $('.completed-checkbox[data-id="' + todoId + '"]').closest('.list-group-item').find('.task-status');
+                        if (completed) {
+                            taskStatus.html('<span class="badge badge-success">Completed</span>');
+                        } else {
+                            taskStatus.html('<span class="badge badge-secondary">Pending</span>');
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error:', error);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
